@@ -1,0 +1,153 @@
+In the figure 4.2 we found the wrong heading before the deadline. 
+We ran the replication file with the correct code, but did not update it on this repository
+In the final replication file this code was run:
+
+b    = model029_high.params
+covb = model029_high.cov_params()
+
+
+all_treats = sorted(long_df_Q2['Treatment'].unique())    
+mods       = sorted(long_df_Q2['RightsVersusGov'].unique())  
+
+
+rows = []
+for t in all_treats:
+    if t == 0:
+       
+        for m in mods:
+            rows.append({
+                'Treatment': '0',
+                'RightsVersusGov': m,
+                'Effect': 0.0,
+                'Lower':  0.0,
+                'Upper':  0.0
+            })
+    else:
+        main = f"C(Treatment)[T.{t}]"
+        inter= f"C(Treatment)[T.{t}]:RightsVersusGov"
+        β_main = b.get(main, 0.0)
+        β_int  = b.get(inter, 0.0)
+        for m in mods:
+            
+            eff = β_main + β_int * m
+
+            
+            v_main = covb.loc[main, main]
+            v_int  = covb.loc[inter, inter]   if inter in covb.index else 0.0
+            cov_mi = covb.loc[main, inter]   if inter in covb.index else 0.0
+            var_eff = v_main + (m**2)*v_int + 2*m*cov_mi
+            se_eff  = np.sqrt(var_eff)
+
+            
+            lo, hi = eff - 1.96*se_eff, eff + 1.96*se_eff
+
+            rows.append({
+                'Treatment': str(t),
+                'RightsVersusGov': m,
+                'Effect': eff,
+                'Lower':  lo,
+                'Upper':  hi
+            })
+
+effects_df = pd.DataFrame(rows)
+
+
+plt.figure(figsize=(8,5))
+sns.lineplot(data=effects_df,
+             x='RightsVersusGov',
+             y='Effect',
+             hue='Treatment',
+             marker='o',
+             palette='tab10')
+
+
+for tr in effects_df['Treatment'].unique():
+    sub = effects_df[effects_df['Treatment']==tr]
+    plt.fill_between(sub['RightsVersusGov'],
+                     sub['Lower'], sub['Upper'],
+                     alpha=0.2)
+
+plt.axhline(0, color='gray', linestyle='--')
+plt.title('Heterogeneous Treatment Effects by RightsVersusGov')
+plt.xlabel('RightsVersusGov (0–4)')
+plt.ylabel('Estimated Treatment Effect vs. Control')
+plt.legend(title='Treatment')
+plt.tight_layout()
+plt.savefig("HTE_PolAttitude.png", dpi = 300)
+plt.show()
+
+Instead of: 
+
+b    = model029_high.params
+covb = model029_high.cov_params()
+
+
+all_treats = sorted(long_df_Q2['Treatment'].unique())    
+mods       = sorted(long_df_Q2['RightsVersusGov'].unique())  
+
+
+rows = []
+for t in all_treats:
+    if t == 0:
+       
+        for m in mods:
+            rows.append({
+                'Treatment': '0',
+                'RightsVersusGov': m,
+                'Effect': 0.0,
+                'Lower':  0.0,
+                'Upper':  0.0
+            })
+    else:
+        main = f"C(Treatment)[T.{t}]"
+        inter= f"C(Treatment)[T.{t}]:RightsVersusGov"
+        β_main = b.get(main, 0.0)
+        β_int  = b.get(inter, 0.0)
+        for m in mods:
+            
+            eff = β_main + β_int * m
+
+            
+            v_main = covb.loc[main, main]
+            v_int  = covb.loc[inter, inter]   if inter in covb.index else 0.0
+            cov_mi = covb.loc[main, inter]   if inter in covb.index else 0.0
+            var_eff = v_main + (m**2)*v_int + 2*m*cov_mi
+            se_eff  = np.sqrt(var_eff)
+
+            
+            lo, hi = eff - 1.96*se_eff, eff + 1.96*se_eff
+
+            rows.append({
+                'Treatment': str(t),
+                'RightsVersusGov': m,
+                'Effect': eff,
+                'Lower':  lo,
+                'Upper':  hi
+            })
+
+effects_df = pd.DataFrame(rows)
+
+
+plt.figure(figsize=(8,5))
+sns.lineplot(data=effects_df,
+             x='RightsVersusGov',
+             y='Effect',
+             hue='Treatment',
+             marker='o',
+             palette='tab10')
+
+
+for tr in effects_df['Treatment'].unique():
+    sub = effects_df[effects_df['Treatment']==tr]
+    plt.fill_between(sub['RightsVersusGov'],
+                     sub['Lower'], sub['Upper'],
+                     alpha=0.2)
+
+plt.axhline(0, color='gray', linestyle='--')
+plt.title('Heterogeneous Treatment Effects by RightsVersusGov (3)')
+plt.xlabel('RightsVersusGov (0–4)')
+plt.ylabel('Estimated Treatment Effect vs. Control')
+plt.legend(title='Treatment')
+plt.tight_layout()
+plt.savefig("HTE_PolAttitude.png", dpi = 300)
+plt.show()
