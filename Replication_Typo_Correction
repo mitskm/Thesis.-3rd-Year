@@ -151,3 +151,8 @@ plt.legend(title='Treatment')
 plt.tight_layout()
 plt.savefig("HTE_PolAttitude.png", dpi = 300)
 plt.show()
+model051 in this work has been obtained using this code instead of the one in the replication file: 
+formula051 = 'Response ~ C(Treatment)' + technical_controls
+model051 = statf.ols(formula051, 
+                     data = long_df_Q5).fit(cov_type="cluster", cov_kwds={"groups": long_df_Q4['ID']})
+print(model051.summary())
